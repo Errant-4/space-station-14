@@ -98,7 +98,7 @@ public partial class NavMapControl : MapGridControl
 
         _transformSystem = _entManager.System<SharedTransformSystem>();
         _font = new VectorFont(cache.GetResource<FontResource>("/EngineFonts/NotoSans/NotoSans-Regular.ttf"), 12);
-        _beaconColor = Color.FromSrgb(TileColor.WithAlpha(0.95f));
+        _beaconColor = Color.FromSrgb(TileColor.WithAlpha(0.97f));
 
         RectClipContent = true;
         HorizontalExpand = true;
