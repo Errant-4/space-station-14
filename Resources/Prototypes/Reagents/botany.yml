@@ -155,7 +155,6 @@
           - !type:ReagentThreshold
             min: 80
 
-
 - type: reagent
   id: WeedKiller
   name: reagent-name-weed-killer
@@ -222,6 +221,9 @@
         - !type:OrganType
           type: Rat
           shouldHave: false
+        - !type:OrganType
+          type: Vox
+          shouldHave: false
         - !type:ReagentThreshold
           reagent: Ammonia
           min: 0.8
@@ -247,7 +249,11 @@
           groups:
             Brute: -5
             Burn: -5
-
+      - !type:Oxygenate # ammonia displaces nitrogen in vox blood
+        conditions:
+          - !type:OrganType
+            type: Vox
+        factor: -4
 
 - type: reagent
   id: Diethylamine
