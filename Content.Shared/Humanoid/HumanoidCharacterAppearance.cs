@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
@@ -91,22 +91,22 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance
         Color.Black,
         Color.Black,
         Humanoid.SkinColor.ValidHumanSkinTone,
-        new ()
+        new()
     )
     {
     }
 
-        public static HumanoidCharacterAppearance DefaultWithSpecies(string species)
+    public static HumanoidCharacterAppearance DefaultWithSpecies(string species)
+    {
+        var speciesPrototype = IoCManager.Resolve<IPrototypeManager>().Index<SpeciesPrototype>(species);
+        var skinColor = speciesPrototype.SkinColoration switch
         {
-            var speciesPrototype = IoCManager.Resolve<IPrototypeManager>().Index<SpeciesPrototype>(species);
-            var skinColor = speciesPrototype.SkinColoration switch
-            {
-                HumanoidSkinColor.HumanToned => Humanoid.SkinColor.HumanSkinTone(speciesPrototype.DefaultHumanSkinTone),
-                HumanoidSkinColor.Hues => speciesPrototype.DefaultSkinTone,
-                HumanoidSkinColor.TintedHues => Humanoid.SkinColor.TintedHues(speciesPrototype.DefaultSkinTone),
-                HumanoidSkinColor.VoxFeathers => Humanoid.SkinColor.ClosestVoxColor(speciesPrototype.DefaultSkinTone),
-                _ => Humanoid.SkinColor.ValidHumanSkinTone
-            };
+            HumanoidSkinColor.HumanToned => Humanoid.SkinColor.HumanSkinTone(speciesPrototype.DefaultHumanSkinTone),
+            HumanoidSkinColor.Hues => speciesPrototype.DefaultSkinTone,
+            HumanoidSkinColor.TintedHues => Humanoid.SkinColor.TintedHues(speciesPrototype.DefaultSkinTone),
+            HumanoidSkinColor.VoxFeathers => Humanoid.SkinColor.ClosestVoxColor(speciesPrototype.DefaultSkinTone),
+            _ => Humanoid.SkinColor.ValidHumanSkinTone
+        };
 
         return new(
             HairStyles.DefaultHairStyle,
@@ -115,7 +115,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance
             Color.Black,
             Color.Black,
             skinColor,
-            new ()
+            new()
         );
     }
 
@@ -155,22 +155,22 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance
 
         var skinType = IoCManager.Resolve<IPrototypeManager>().Index<SpeciesPrototype>(species).SkinColoration;
 
-            var newSkinColor = new Color(random.NextFloat(1), random.NextFloat(1), random.NextFloat(1), 1);
-            switch (skinType)
-            {
-                case HumanoidSkinColor.HumanToned:
-                    var tone = random.Next(0, 100);
-                    newSkinColor = Humanoid.SkinColor.HumanSkinTone(tone);
-                    break;
-                case HumanoidSkinColor.Hues:
-                case HumanoidSkinColor.TintedHues:
-                    break;
-                case HumanoidSkinColor.VoxFeathers:
-                    newSkinColor = Humanoid.SkinColor.ProportionalVoxColor(newSkinColor);
-                    break;
-            }
+        var newSkinColor = new Color(random.NextFloat(1), random.NextFloat(1), random.NextFloat(1), 1);
+        switch (skinType)
+        {
+            case HumanoidSkinColor.HumanToned:
+                var tone = random.Next(0, 100);
+                newSkinColor = Humanoid.SkinColor.HumanSkinTone(tone);
+                break;
+            case HumanoidSkinColor.Hues:
+            case HumanoidSkinColor.TintedHues:
+                break;
+            case HumanoidSkinColor.VoxFeathers:
+                newSkinColor = Humanoid.SkinColor.ProportionalVoxColor(newSkinColor);
+                break;
+        }
 
-        return new HumanoidCharacterAppearance(newHairStyle, newHairColor, newFacialHairStyle, newHairColor, newEyeColor, newSkinColor, new ());
+        return new HumanoidCharacterAppearance(newHairStyle, newHairColor, newFacialHairStyle, newHairColor, newEyeColor, newSkinColor, new());
 
         float RandomizeColor(float channel)
         {
