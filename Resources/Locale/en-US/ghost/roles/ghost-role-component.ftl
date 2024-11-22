@@ -17,9 +17,7 @@ ghost-role-information-antagonist-rules = You are a [color=red][bold]Solo Antago
                                           You are absolutely [color=red]NOT[/color] allowed to remember, say, the name, appearance, etc. of your previous character.
 ghost-role-information-rules-team-antagonist = You are a [color=red][bold]Team Antagonist[/bold][/color]. Your intentions are clear, and harmful to the station and its crew.
                                                You must [bold]work with your team[/bold] or follow reasonable directions from your team leaders.
-                                               You don't remember any of your previous life, and you don't remember anything you learned as a ghost.
-                                               You are allowed to remember knowledge about the game in general, such as how to cook, how to use objects, etc.
-                                               You are absolutely [color=red]NOT[/color] allowed to remember, say, the name, appearance, etc. of your previous character.
+                                               You don't remember any of your preved to remember, say, the name, appearance, etc. of your previous character.
 ghost-role-information-familiar-rules = You are a [color=#6495ed][bold]Familiar[/bold][/color]. Serve the interests of your master, whatever those may be.
                                         You don't remember any of your previous life, and you don't remember anything you learned as a ghost.
                                         You are allowed to remember knowledge about the game in general, such as how to cook, how to use objects, etc.
@@ -252,7 +250,7 @@ ghost-role-information-medical-description = You are a medical professional, but
 ghost-role-information-cargo-name = Cargo
 ghost-role-information-cargo-description = You are part of a logistics mission, but seem to have found yourself in a strange situation...
 
-ghost-role-information-engineering-name = Engineering 
+ghost-role-information-engineering-name = Engineering
 ghost-role-information-engineering-description = You are on an engineering job, but seem to have found yourself in a strange situation...
 
 ghost-role-information-science-name = Science
