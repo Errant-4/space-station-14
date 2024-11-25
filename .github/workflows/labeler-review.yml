@@ -21,3 +21,4 @@ jobs:
       uses: actions-ecosystem/action-add-labels@v1
       with:
         labels: "S: Approved"
+        github_token: ${{ secrets.GH_PAT }}
