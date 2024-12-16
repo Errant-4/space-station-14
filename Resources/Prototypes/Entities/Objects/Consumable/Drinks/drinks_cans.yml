@@ -71,7 +71,7 @@
 - type: entity
   parent: DrinkCanBaseFull
   id: DrinkColaCan
-  name: space cola
+  name: space col
   description: A refreshing beverage.
   components:
   - type: SolutionContainerManager
