@@ -6,7 +6,6 @@ using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
-using Content.Shared.Silicons.Borgs.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
@@ -27,8 +26,7 @@ public abstract class SharedRoleSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
     private JobRequirementOverridePrototype? _requirementOverride;
-    // TODO deduplicate this with the one in AdminNameOverlay
-    private readonly ProtoId<RoleTypePrototype>[] _antagFilter =
+    public readonly ProtoId<RoleTypePrototype>[] AntagFilter =
         ["SoloAntagonist", "TeamAntagonist", "SiliconAntagonist", "FreeAgent"];
 
     public override void Initialize()
@@ -569,7 +567,7 @@ public abstract class SharedRoleSystem : EntitySystem
         if (!Resolve(mind.Owner, ref mind.Comp))
             return (false, false);
 
-        var antagonist = (_antagFilter.Contains(mind.Comp.RoleType));
+        var antagonist = (AntagFilter.Contains(mind.Comp.RoleType));
         var comp = GetRoleCompByTime(mind.Comp);
         var exclusiveAntag = comp?.Comp?.ExclusiveAntag ?? false;
 

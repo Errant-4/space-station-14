@@ -3,6 +3,7 @@ using System.Numerics;
 using Content.Client.Administration.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.Mind;
+using Content.Shared.Roles;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -24,12 +25,11 @@ internal sealed class AdminNameOverlay : Overlay
     private readonly Font _font;
 
     //TODO make this adjustable via GUI
-    private readonly ProtoId<RoleTypePrototype>[] _filter =
-        ["SoloAntagonist", "TeamAntagonist", "SiliconAntagonist", "FreeAgent"];
+    private readonly ProtoId<RoleTypePrototype>[] _filter;
     private readonly string _antagLabelClassic = Loc.GetString("admin-overlay-antag-classic");
     private readonly Color _antagColorClassic = Color.OrangeRed;
 
-    public AdminNameOverlay(AdminSystem system, IEntityManager entityManager, IEyeManager eyeManager, IResourceCache resourceCache, EntityLookupSystem entityLookup, IUserInterfaceManager userInterfaceManager)
+    public AdminNameOverlay(AdminSystem system, IEntityManager entityManager, IEyeManager eyeManager, IResourceCache resourceCache, EntityLookupSystem entityLookup, IUserInterfaceManager userInterfaceManager, SharedRoleSystem roles)
     {
         IoCManager.InjectDependencies(this);
 
@@ -39,6 +39,7 @@ internal sealed class AdminNameOverlay : Overlay
         _entityLookup = entityLookup;
         _userInterfaceManager = userInterfaceManager;
         ZIndex = 200;
+        _filter = roles.AntagFilter;
         _font = new VectorFont(resourceCache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 10);
     }
 
