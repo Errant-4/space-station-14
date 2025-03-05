@@ -27,6 +27,9 @@ public abstract class SharedRoleSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
     private JobRequirementOverridePrototype? _requirementOverride;
+    // TODO deduplicate this with the one in AdminNameOverlay
+    private readonly ProtoId<RoleTypePrototype>[] _antagFilter =
+        ["SoloAntagonist", "TeamAntagonist", "SiliconAntagonist", "FreeAgent"];
 
     public override void Initialize()
     {
@@ -561,24 +564,14 @@ public abstract class SharedRoleSystem : EntitySystem
         return CheckAntagonistStatus(mindId.Value).ExclusiveAntag;
     }
 
-   private (bool Antag, bool ExclusiveAntag) CheckAntagonistStatus(Entity<MindComponent?> mind)
-   {
-       if (!Resolve(mind.Owner, ref mind.Comp))
-           return (false, false);
+    private (bool Antag, bool ExclusiveAntag) CheckAntagonistStatus(Entity<MindComponent?> mind)
+    {
+        if (!Resolve(mind.Owner, ref mind.Comp))
+            return (false, false);
 
-        var antagonist = false;
-        var exclusiveAntag = false;
-        foreach (var role in mind.Comp.MindRoles)
-        {
-            if (!TryComp<MindRoleComponent>(role, out var roleComp))
-            {
-                Log.Error($"Mind Role Entity {ToPrettyString(role)} does not have a MindRoleComponent, despite being listed as a role belonging to {ToPrettyString(mind)}|");
-                continue;
-            }
-
-            antagonist |= roleComp.Antag;
-            exclusiveAntag |= roleComp.ExclusiveAntag;
-        }
+        var antagonist = (_antagFilter.Contains(mind.Comp.RoleType));
+        var comp = GetRoleCompByTime(mind.Comp);
+        var exclusiveAntag = comp?.Comp?.ExclusiveAntag ?? false;
 
         return (antagonist, exclusiveAntag);
     }
