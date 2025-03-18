@@ -160,7 +160,7 @@ public sealed class RevolutionaryRuleSystem : GameRuleSystem<RevolutionaryRuleCo
             }
         }
 
-        if (mindId == default || !_role.MindHasRole<RevolutionaryRoleComponent>(mindId))
+        if (mind is not null && !_role.MindHasRole<RevolutionaryRoleComponent>(mindId))
         {
             _role.MindAddRole(mindId, "MindRoleRevolutionary");
         }
