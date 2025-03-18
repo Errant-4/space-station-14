@@ -13,6 +13,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 using System.Diagnostics.CodeAnalysis;
+using Content.Shared.Roles;
 
 namespace Content.Server.Mind;
 
@@ -22,6 +23,7 @@ public sealed class MindSystem : SharedMindSystem
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
     [Dependency] private readonly IPlayerManager _players = default!;
     [Dependency] private readonly GhostSystem _ghosts = default!;
+    [Dependency] private readonly SharedRoleSystem _roles = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly PvsOverrideSystem _pvsOverride = default!;
 
@@ -31,6 +33,7 @@ public sealed class MindSystem : SharedMindSystem
 
         SubscribeLocalEvent<MindContainerComponent, EntityTerminatingEvent>(OnMindContainerTerminating);
         SubscribeLocalEvent<MindComponent, ComponentShutdown>(OnMindShutdown);
+        SubscribeLocalEvent<DelayedMindAddRoleComponent, MindAddedMessage>(OnDelayedMindRoleAdd);
     }
 
     private void OnMindShutdown(EntityUid uid, MindComponent mind, ComponentShutdown args)
@@ -47,6 +50,15 @@ public sealed class MindSystem : SharedMindSystem
             TransferTo(uid, null, mind: mind, createGhost: false);
 
         mind.OwnedEntity = null;
+    }
+
+    private void OnDelayedMindRoleAdd(Entity<DelayedMindAddRoleComponent> ent, ref MindAddedMessage args)
+    {
+        if (ent.Comp.Prototypes.Count <= 0)
+            return;
+
+        _roles.MindAddRoles(args.Mind, ent.Comp.Prototypes, silent: true);
+        RemCompDeferred<DelayedMindAddRoleComponent>(ent);
     }
 
     private void OnMindContainerTerminating(EntityUid uid, MindContainerComponent component, ref EntityTerminatingEvent args)

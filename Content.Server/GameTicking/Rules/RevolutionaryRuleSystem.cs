@@ -28,6 +28,8 @@ using Content.Shared.Zombies;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Content.Shared.Cuffs.Components;
+using Content.Shared.Mind;
+using Content.Shared.Roles;
 
 namespace Content.Server.GameTicking.Rules;
 
@@ -63,6 +65,9 @@ public sealed class RevolutionaryRuleSystem : GameRuleSystem<RevolutionaryRuleCo
         SubscribeLocalEvent<HeadRevolutionaryComponent, MobStateChangedEvent>(OnHeadRevMobStateChanged);
 
         SubscribeLocalEvent<RevolutionaryRoleComponent, GetBriefingEvent>(OnGetBriefing);
+
+        // Unfortunately there isn't really a component to filter the entities, we have to check the args
+        SubscribeLocalEvent<RoleAddedEvent>(OnRoleAdded);
 
     }
 
@@ -160,13 +165,34 @@ public sealed class RevolutionaryRuleSystem : GameRuleSystem<RevolutionaryRuleCo
             }
         }
 
-        if (mind is not null && !_role.MindHasRole<RevolutionaryRoleComponent>(mindId))
+        var rev = "MindRoleRevolutionary";
+
+        // Monkeys and kobolds can be converted before they have a player
+        if (mind is null)
         {
-            _role.MindAddRole(mindId, "MindRoleRevolutionary");
+            var delay = EnsureComp<DelayedMindAddRoleComponent>(ev.Target);
+            if (!delay.Prototypes.Contains(rev))
+                delay.Prototypes?.Add(rev);
+            //TODO would be nice if the player got the Rev briefing when they get the mindrole
+            return;
         }
 
-        if (mind?.Session != null)
-            _antag.SendBriefing(mind.Session, Loc.GetString("rev-role-greeting"), Color.Red, revComp.RevStartSound);
+        if (_role.MindHasRole<RevolutionaryRoleComponent>(mindId))
+            return;
+
+        _role.MindAddRole(mindId, rev);
+    }
+
+    private void OnRoleAdded(RoleAddedEvent args)
+    {
+        Entity<MindComponent> mind = (args.MindId, args.Mind);
+        var entId = mind.Comp.OwnedEntity;
+
+        if (!HasComp<RevolutionaryRoleComponent>(args.MindRoleId) ||
+            !TryComp<RevolutionaryComponent>(entId, out var revComp))
+            return;
+
+        _antag.SendBriefing(mind.Comp.Session, Loc.GetString("rev-role-greeting"), Color.Red, revComp.RevStartSound);
     }
 
     //TODO: Enemies of the revolution
