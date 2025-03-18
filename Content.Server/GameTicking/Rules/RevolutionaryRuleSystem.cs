@@ -189,7 +189,8 @@ public sealed class RevolutionaryRuleSystem : GameRuleSystem<RevolutionaryRuleCo
         var entId = mind.Comp.OwnedEntity;
 
         if (!HasComp<RevolutionaryRoleComponent>(args.MindRoleId) ||
-            !TryComp<RevolutionaryComponent>(entId, out var revComp))
+            !TryComp<RevolutionaryComponent>(entId, out var revComp) ||
+            HasComp<HeadRevolutionaryComponent>(entId))
             return;
 
         _antag.SendBriefing(mind.Comp.Session, Loc.GetString("rev-role-greeting"), Color.Red, revComp.RevStartSound);
