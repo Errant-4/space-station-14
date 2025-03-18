@@ -10,8 +10,7 @@ namespace Content.Server.Mind;
 public sealed partial class DelayedMindAddRoleComponent : Component
 {
     /// <summary>
-    ///     Marks this Mind Role as Antagonist
-    ///     A single antag Mind Role is enough to make the owner mind count as Antagonist.
+    ///     The list of mind role prototypes to add
     /// </summary>
     [DataField]
     public List<EntProtoId> Prototypes = new List<EntProtoId>();
