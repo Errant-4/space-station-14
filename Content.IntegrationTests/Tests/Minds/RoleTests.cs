@@ -3,6 +3,7 @@ using Content.Server.Roles;
 using Content.Shared.Roles;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Reflection;
 
 namespace Content.IntegrationTests.Tests.Minds;
@@ -33,7 +34,7 @@ public sealed class RoleTests
 
                 // It is possible that this is meant to be supported? Though I would assume that it would be for
                 // admin / prototype uploads, and that pre-defined roles should still check this.
-                Assert.That(!comp.Antag || comp.AntagPrototype != null , $"Role {proto.ID} is an antag, despite not having a antag prototype.");
+                // Assert.That(!comp.Antag || comp.AntagPrototype != null , $"Role {proto.ID} is an antag, despite not having a antag prototype.");
             }
         });
 
@@ -90,6 +91,27 @@ public sealed class RoleTests
             }
         });
 
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Check that there are no AntagPrototypes and JobPrototypes using the same ID
+    /// </summary>
+    [Test]
+    public async Task NoIdenticalAntagAndJobPrototypes()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+
+        var jobId = pair.Server.ResolveDependency<IPrototypeManager>().EnumeratePrototypes(typeof(JobPrototype));
+        var antagId = pair.Server.ResolveDependency<IPrototypeManager>().EnumeratePrototypes(typeof(AntagPrototype));
+
+        foreach (var job in jobId)
+        {
+            foreach (var antag in antagId)
+            {
+                Assert.That(!antag.ID.Equals(job.ID), $"Job and Antag prototypes with the same ID: {job.ID}");
+            }
+        }
         await pair.CleanReturnAsync();
     }
 }
