@@ -23,10 +23,10 @@ Intercom: IntercomCommon
 ToyAssistant: ToyFigurinePassenger
 
 # 2023-07-20
-ForensicGloves: ClothingHandsGlovesForensic
+ForensicGloves: ClothingHandsGlovesForensic 
 
 # 2023-07-24
-ClothingEyesGlassesBeer: ClothingEyesHudBeer
+ClothingEyesGlassesBeer: ClothingEyesHudBeer 
 
 # 2023-08-01
 lantern: Lantern
