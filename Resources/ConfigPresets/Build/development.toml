@@ -26,4 +26,4 @@ arrivals = false
 preload_grids = false
 
 [admin]
-see_own_notes = true
+see_own_notes = tru
