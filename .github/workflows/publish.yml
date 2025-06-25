@@ -9,9 +9,8 @@ on:
   # schedule:
    # - cron: '0 10 * * *'
 
-on:
   pull_request:
-  run: echo 'Test message'
+    run: echo 'Test message'
 
 jobs:
   build:
