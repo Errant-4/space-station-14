@@ -9,26 +9,15 @@ on:
   # schedule:
    # - cron: '0 10 * * *'
 
-  pull_request:
-    run: echo 'Test message'
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Exit force
-      run: |
-        echo 'exit test'
-        exit 1
-
     - name: Fail if we are attempting to run on the master branch
       if: ${{GITHUB.REF_NAME == 'master'}} && github.repository == 'space-wizards/space-station-14'
       run: exit 1
 
-    - uses: actions/checkout@v4.2.2
-      with:
-        submodules: 'recursive'
     - name: Main stuff
       run: echo 'Do the thing'
 
