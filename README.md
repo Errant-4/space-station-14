@@ -16,6 +16,10 @@ If you want to host or create content for SS14, this is the repo you need. It co
 
 </div>
 
+## The Entire Bee Movie Script
+
+According to all known laws of aviation, there is no way that a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyways. Because bees don't care what humans think is impossible.
+
 ## Documentation/Wiki
 
 Our [docs site](https://docs.spacestation14.com/) has documentation on SS14's content, engine, game design, and more.  
