@@ -59,4 +59,12 @@ public sealed partial class CCVars
     /// </summary>
     public static readonly CVarDef<bool> ForceClientHudVersionWatermark =
         CVarDef.Create("server.force_client_hud_version_watermark", false, CVar.REPLICATED | CVar.SERVER);
+
+    /// <summary>
+    ///     Determines what happens when the Join button is clicked in the lobby
+    ///     default: normal Late Join GUI opens
+    ///     tutorial: tutorial selection GUI opens (tutorials will only work properly if SolitarySpawningRuleSystem is running)
+    /// </summary>
+    public static readonly CVarDef<string> ServerLobbyJoinMode =
+        CVarDef.Create("server.lobby_join_mode", "default", CVar.REPLICATED | CVar.SERVER);
 }

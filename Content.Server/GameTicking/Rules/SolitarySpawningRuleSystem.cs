@@ -9,7 +9,10 @@ using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Roles;
 using Content.Shared.Station.Components;
+using Content.Shared.Tutorial;
 using Linguini.Shared.Util;
+using Robust.Server.Player;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -29,11 +32,16 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 {
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
     [Dependency] private readonly IChatManager _chatManager = default!;
+    [Dependency] private readonly IEntityManager _entity = default!;
+    [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly MetaDataSystem _meta = default!;
+    [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
 
     private readonly Dictionary<ICommonSession, EntityUid> _stations = [];
+
+    private Dictionary<ICommonSession, int> _choices = new();
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -42,6 +50,20 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
         SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
+        SubscribeNetworkEvent<TutorialJoinEvent>(OnTutorialJoin);
+    }
+
+    private void OnTutorialJoin(TutorialJoinEvent message, EntitySessionEventArgs args)
+    {
+        var session = args.SenderSession;
+        var station = _entity.GetEntity(message.Station);
+
+        _choices.Remove(session);
+        _choices.Add(session, message.OptionSelected);
+
+        //TODO checks?
+        _gameTicker.MakeJoinGame(session, station, message.Job, silent:true);
+
     }
 
     /// <summary>
@@ -71,9 +93,11 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
                 continue;
             }
 
-            int? playerChoice = null;
-
             //TODO query SolitarySpawningManager which option the player picked when joining
+            int? playerChoice = null;
+            if (_choices.TryGetValue(args.Player, out var found))
+                playerChoice = found;
+            _choices.Remove(args.Player);
 
             if (playerChoice is null || !playerChoice.Value.InRange(0, count - 1))
             {

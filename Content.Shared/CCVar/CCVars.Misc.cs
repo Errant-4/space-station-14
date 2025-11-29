@@ -109,4 +109,11 @@ public sealed partial class CCVars
     /// </summary>
     public static readonly CVarDef<float> PlaytimeMinutesToday =
         CVarDef.Create("playtime.minutes_today", 0f, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    // TODO kill this and replace it with SolitarySpawningManager
+    /// <summary>
+    ///     Stores which option the player chose on TutorialGui
+    /// </summary>
+    public static readonly CVarDef<int> TutorialOptionPick =
+        CVarDef.Create("misc.tutorial_option_pick", 0, CVar.CLIENT | CVar.REPLICATED);
 }

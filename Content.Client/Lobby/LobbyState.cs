@@ -1,6 +1,5 @@
 using Content.Client.Audio;
 using Content.Client.GameTicking.Managers;
-using Content.Client.LateJoin;
 using Content.Client.Lobby.UI;
 using Content.Client.Message;
 using Content.Client.Playtime;
@@ -9,6 +8,7 @@ using Content.Client.Voting;
 using Content.Shared.CCVar;
 using Robust.Client;
 using Robust.Client.Console;
+using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -24,6 +24,8 @@ namespace Content.Client.Lobby
         [Dependency] private readonly IConfigurationManager _cfg = default!;
         [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
         [Dependency] private readonly IEntityManager _entityManager = default!;
+        [Dependency] private readonly ILogManager _log = default!;
+        [Dependency] private readonly IPlayerManager _player = default!;
         [Dependency] private readonly IResourceCache _resourceCache = default!;
         [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
         [Dependency] private readonly IGameTiming _gameTiming = default!;
@@ -109,12 +111,26 @@ namespace Content.Client.Lobby
 
         private void OnReadyPressed(BaseButton.ButtonEventArgs args)
         {
+            var mode = _cfg.GetCVar(CCVars.ServerLobbyJoinMode);
+
             if (!_gameTicker.IsGameStarted)
             {
                 return;
             }
 
-            new LateJoinGui().OpenCentered();
+            var session = _player.LocalSession;
+            if (session is null)
+                return;
+
+            switch (mode.ToLower())
+            {
+                case "tutorial":
+                    new TutorialJoinGui(_consoleHost, _entityManager, _log, session , _gameTicker).OpenCentered();
+                    break;
+                default:
+                    new LateJoinGui().OpenCentered();
+                    break;
+            }
         }
 
         private void OnReadyToggled(BaseButton.ButtonToggledEventArgs args)
