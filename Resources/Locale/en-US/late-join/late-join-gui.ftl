@@ -4,4 +4,4 @@ late-join-gui-department-jobs-label = {$departmentName} jobs
 late-join-gui-job-slot-capped = {$jobName} ({$amount} open)
 late-join-gui-job-slot-uncapped = {$jobName} (∞ open)
 
-tutorial-join-gui-title = Select Tutorial
+late-join-custom-list-gui-title = Select Tutorial

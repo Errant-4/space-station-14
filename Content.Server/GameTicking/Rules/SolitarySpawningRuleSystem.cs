@@ -8,11 +8,10 @@ using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Roles;
+using Content.Shared.Spawning;
 using Content.Shared.Station.Components;
-using Content.Shared.Tutorial;
 using Linguini.Shared.Util;
 using Robust.Server.Player;
-using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -34,14 +33,15 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     [Dependency] private readonly IChatManager _chatManager = default!;
     [Dependency] private readonly IEntityManager _entity = default!;
     [Dependency] private readonly GameTicker _gameTicker = default!;
+    [Dependency] private readonly SharedGameTicker _ticker2 = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly MetaDataSystem _meta = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
 
     private readonly Dictionary<ICommonSession, EntityUid> _stations = [];
 
     private Dictionary<ICommonSession, int> _choices = new();
+    private ProtoId<JobPrototype> _job = "Passenger";
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -50,20 +50,53 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
         SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-        SubscribeNetworkEvent<TutorialJoinEvent>(OnTutorialJoin);
+        SubscribeNetworkEvent<LobbyLateJoinButtonPressedEvent>(OnLateJoinButton);
+        SubscribeNetworkEvent<LateJoinCustomListEvent>(OnCustomList);
     }
 
-    private void OnTutorialJoin(TutorialJoinEvent message, EntitySessionEventArgs args)
+    private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
+    {
+        var a = this;
+        var b = a.ToString();
+
+        ProtoId<JobPrototype> job = "Passenger"; // This will be overwritten by the actual Spawn Profile later
+
+        //TODO check active rules and make the list
+        var station = new NetEntity();
+
+        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)>();
+        buttonData.Add((_job, null, "Tutorial", "This is the first tutorial"));
+        buttonData.Add((_job, null, "Death", "This will kill you"));
+        buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works."));
+
+        var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
+        RaiseNetworkEvent(ev); //TODO:ERRANT test without channel
+
+        message.Handled = true;
+    }
+
+    private void OnCustomList(LateJoinCustomListEvent message, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
         var station = _entity.GetEntity(message.Station);
 
         _choices.Remove(session);
-        _choices.Add(session, message.OptionSelected);
+        _choices.Add(session, message.ButtonId);
 
         //TODO checks?
         _gameTicker.MakeJoinGame(session, station, message.Job, silent:true);
 
+    }
+
+    private bool ActiveRules()
+    {
+        var rules = EntityQueryEnumerator<SolitarySpawningRuleComponent, GameRuleComponent>();
+
+        while (rules.MoveNext(out var uid, out var comp, out var rule))
+        {
+        }
+
+        return false;
     }
 
     /// <summary>
