@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Content.Server.GameTicking.Prototypes;
 using Robust.Shared.Prototypes;
 

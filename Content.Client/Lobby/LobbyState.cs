@@ -6,6 +6,7 @@ using Content.Client.Playtime;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Client.Voting;
 using Content.Shared.CCVar;
+using Content.Shared.Lobby;
 using Content.Shared.Roles;
 using Content.Shared.Spawning;
 using Robust.Client;
@@ -41,7 +42,7 @@ namespace Content.Client.Lobby
 
         protected override Type? LinkedScreenType { get; } = typeof(LobbyGui);
         public LobbyGui? Lobby;
-        private LateJoinGuiMode LateJoinMode;
+        private LateJoinGuiMode _lateJoinMode = LateJoinGuiMode.Default;
 
         protected override void Startup()
         {
@@ -123,9 +124,9 @@ namespace Content.Client.Lobby
             }
 
             var ev = new LobbyLateJoinButtonPressedEvent();
-            _entityManager.RaisePredictiveEvent(ev);
+            _entityManager.RaisePredictiveEvent(ev); //TODO:ERRANT no longer necessary to make this a Handled event
 
-            if (LateJoinMode is LateJoinGuiMode.Default)
+            if (_lateJoinMode is LateJoinGuiMode.Default)
                 new LateJoinGui().OpenCentered();
         }
 
@@ -140,8 +141,8 @@ namespace Content.Client.Lobby
                 return;
             }
 
-            LateJoinMode = LateJoinGuiMode.CustomList;
-            _lobby.CloseAllLateJoinGui();
+            if (_lateJoinMode is not LateJoinGuiMode.CustomList)
+                _lobby.CloseAllLateJoinGui();
 
             new LateJoinGuiCustomList(_entityManager, _log, _gameTicker, _lobby, args.Options,args.Origin).OpenCentered();
         }
@@ -313,8 +314,8 @@ namespace Content.Client.Lobby
 
 /// <summary>
 ///     The system that originally created the custom spawn list </summary>
-public enum LateJoinGuiMode : byte
-{
-    Default,
-    CustomList,
-}
+// public enum LateJoinGuiMode : byte
+// {
+//     Default,
+//     CustomList,
+// }

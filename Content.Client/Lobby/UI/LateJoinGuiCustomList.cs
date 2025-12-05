@@ -68,10 +68,6 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
             var description = Loc.GetString(descriptionLoc);
             var station = stationInput ?? ticker.StationNames.First().Key;
 
-            // We have to validate that the specified station exists
-            // if (!ticker.StationNames.ContainsKey(station))
-            //     continue;
-
             var optionLabel = new Label { Margin = new Thickness(5f, 0, 0, 0) };
             var optionButton = new JobButton(optionLabel, job, name, null);
             optionButton.ToolTip = description;
@@ -80,7 +76,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
             if (!ticker.StationNames.ContainsKey(station))
             {
                 optionButton.Disabled = true;
-                //TODO replace tolltip with error?
+                //TODO replace tooltip with error?
             }
 
             var optionSelector = new BoxContainer

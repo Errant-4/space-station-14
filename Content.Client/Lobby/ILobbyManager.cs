@@ -14,9 +14,11 @@ public interface ILobbyManager
     /// <summary>
     ///     Fired when Gui data for a custom Late Join list is received.
     /// </summary>
-    // event Action<OnCustomListReceived> OnCustomListReceived;
     event Action<SolitarySpawningGuiDataEvent>? OnCustomListGuiRequest;
 
+    /// <summary>
+    ///     Instructs all Join GUIs to close
+    /// </summary>
     event Action? CloseJoinGui;
 
     /// <summary>

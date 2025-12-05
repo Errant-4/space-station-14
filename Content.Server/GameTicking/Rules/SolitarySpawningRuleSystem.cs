@@ -7,11 +7,11 @@ using Content.Server.GameTicking.Rules.Components;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Lobby;
 using Content.Shared.Roles;
 using Content.Shared.Spawning;
 using Content.Shared.Station.Components;
 using Robust.Shared.Map;
-using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -33,7 +33,6 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     [Dependency] private readonly IChatManager _chatManager = default!;
     [Dependency] private readonly IEntityManager _entity = default!;
     [Dependency] private readonly GameTicker _gameTicker = default!;
-    [Dependency] private readonly SharedGameTicker _ticker2 = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly MetaDataSystem _meta = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
@@ -42,13 +41,18 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     // Used for respawning players on their own station, and for deleting unused maps.
     private readonly Dictionary<ICommonSession, (EntityUid, MapId)> _stations = [];
 
-    private Dictionary<ICommonSession, ProtoId<SolitarySpawningPrototype>> _choices = new();
-    private ProtoId<JobPrototype> _job = "Passenger";
+    private readonly Dictionary<ICommonSession, ProtoId<SolitarySpawningPrototype>> _choices = new();
+    private readonly ProtoId<JobPrototype> _job = "Passenger";
+    private List<SolitarySpawningRuleComponent> _rules = [];
+    private bool _rulesActive;
 
     /// <inheritdoc/>
     public override void Initialize()
     {
         base.Initialize();
+
+        SubscribeLocalEvent<SolitarySpawningRuleComponent, ComponentStartup>(OnStartup);
+        SubscribeLocalEvent<SolitarySpawningRuleComponent, ComponentShutdown>(OnShutdown);
 
         SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
@@ -56,12 +60,12 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         SubscribeNetworkEvent<LateJoinCustomListEvent>(OnCustomList);
     }
 
-    private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
+    private void OnStartup(Entity<SolitarySpawningRuleComponent> ent, ref ComponentStartup args)
     {
-        var a = this;
-        var b = a.ToString();
+        // var a = this;
+        // var b = a.ToString();
 
-        ProtoId<JobPrototype> job = "Passenger"; // This will be overwritten by the actual Spawn Profile later
+        // ProtoId<JobPrototype> job = "Passenger"; // This will be overwritten by the actual Spawn Profile later
 
         //TODO check active rules and make the list
         var station = new NetEntity();
@@ -74,9 +78,75 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
         RaiseNetworkEvent(ev); //TODO:ERRANT test without channel
 
-        message.Handled = true;
+        UpdateRules();
+
     }
 
+    private void OnShutdown(Entity<SolitarySpawningRuleComponent> ent, ref ComponentShutdown args)
+    {
+        UpdateRules();
+    }
+
+    private void UpdateRules()
+    {
+        var list = new List<SolitarySpawningRuleComponent>();
+        var active = false;
+
+        var query = QueryActiveRules();
+        while (query.MoveNext(out _, out var comp, out _))
+
+        // while (rules.MoveNext(out var uid, out var comp, out var rule))
+        {
+            list.Add(comp);
+            active = true;
+        }
+
+        // Let the client Lobbies know when they need to switch to/from custom spawn Gui
+        if (_rulesActive != active)
+        {
+            var newval = active ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
+
+            var ev = new ChangeLateJoinGuiModeEvent(newval); //TODO:ERRANT does not seem to work
+            RaiseNetworkEvent(ev);
+            _rulesActive = active;
+        }
+
+        _rules = list;
+    }
+
+    /// <summary>
+    /// A player pressed the Late Join button
+    /// </summary>
+    private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
+    {
+        if (!_rulesActive)
+            return;
+
+        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>();
+
+        Log.Debug($"Creating button data for {args.SenderSession}. Rules found: {_rules.Count}");
+        foreach (var rule in _rules)
+        {
+            foreach (var protoId in rule.Prototypes)
+            {
+                if (_proto.TryIndex(protoId, out var proto))
+                    buttonData.Add((_job, null, proto.Name, proto.Description, protoId));
+            }
+        }
+
+        buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works.", "")); //TODO:ERRANT remove
+
+        Log.Debug($"Created {buttonData.Count} button entries");
+
+        var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
+        RaiseNetworkEvent(ev, args.SenderSession);
+    }
+
+    /// <summary>
+    /// Server received a custom list GUI choice from the client
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="args"></param>
     private void OnCustomList(LateJoinCustomListEvent message, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
@@ -110,8 +180,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         var active = false;
 
         // Check if any Solitary Spawning rules are running
-        var query = QueryActiveRules();
-        while (query.MoveNext(out _, out var comp, out _))
+        foreach (var comp in _rules)
         {
             // TODO check blacklists/whitelists from the gamerule
 
@@ -121,6 +190,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
             if (comp.Prototypes.Count <= 0)
             {
                 Log.Warning("No prototypes were included in SolitarySpawningRuleComponent");
+
                 continue;
             }
 
