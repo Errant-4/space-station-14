@@ -14,14 +14,14 @@ namespace Content.Client.Lobby.UI;
 public sealed class LateJoinGuiCustomList : DefaultWindow
 {
     private readonly Control _base;
-    public event Action<(ProtoId<JobPrototype>, NetEntity, int, string)> SelectedOption;
+    public event Action<(ProtoId<JobPrototype>, NetEntity, string, string)> SelectedOption; //TODO:ERRANT replace 1st string with ProtoId<SolitarySpawningPrototype>
 
     public LateJoinGuiCustomList(
         IEntityManager entMan,
         ILogManager logManager,
         ClientGameTicker ticker,
         ILobbyManager lobby,
-        List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)> buttonData,
+        List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData,
         LateJoinCustomListOrigin origin)
     {
         var sawmill = logManager.GetSawmill("latejoincustom.panel");
@@ -41,16 +41,16 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
         SelectedOption += x =>
         {
-            var (job, station, number, name) = x;
-            sawmill.Info($"Player requesting custom late join spawn: button {number} - '{name}'. {job} on {station}");
-            entMan.RaisePredictiveEvent(new LateJoinCustomListEvent( job, station, number, origin ));
+            var (job, station, proto, name) = x;
+            sawmill.Info($"Player requesting custom late join spawn: {proto} - '{name}'. {job} on {station}");
+            entMan.RaisePredictiveEvent(new LateJoinCustomListEvent( job, station, proto, origin ));
             Close();
         };
 
         lobby.CloseJoinGui += Close;
     }
 
-    private void BuildUI(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)> buttonData, ClientGameTicker ticker)
+    private void BuildUI(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData, ClientGameTicker ticker)
     {
         var tutorialListScroll = new ScrollContainer() //TODO:ERRANT this doesn't seem to work?
         {
@@ -60,10 +60,10 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
         _base.AddChild(tutorialListScroll);
 
         // Turn the input data into actual buttons
-        var counter = 0;
-        foreach (var (job, stationInput, nameLoc, descriptionLoc) in buttonData)
+        // var counter = 0;
+        foreach (var (job, stationInput, nameLoc, descriptionLoc, proto) in buttonData)
         {
-            var c = counter; //TODO:ERRANT try again if this is needed
+            // var c = counter; //TODO:ERRANT try again if this is needed
             var name = Loc.GetString(nameLoc);
             var description = Loc.GetString(descriptionLoc);
             var station = stationInput ?? ticker.StationNames.First().Key;
@@ -91,9 +91,9 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
             optionSelector.AddChild(optionLabel);
             optionButton.AddChild(optionSelector);
-            optionButton.OnPressed += _ => SelectedOption.Invoke((job, station, c, name));
+            optionButton.OnPressed += _ => SelectedOption.Invoke((job, station, proto, name));
             _base.AddChild(optionButton);
-            counter++;
+            // counter++;
         }
     }
 }

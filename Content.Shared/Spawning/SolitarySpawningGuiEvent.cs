@@ -9,8 +9,8 @@ namespace Content.Shared.Spawning;
 /// It sends the list of spawn options to the client
 /// </summary>
 [Serializable, NetSerializable] //TODO:ERRANT rename
-public sealed class SolitarySpawningGuiDataEvent(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)> options, LateJoinCustomListOrigin origin) : HandledEntityEventArgs
+public sealed class SolitarySpawningGuiDataEvent(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> options, LateJoinCustomListOrigin origin) : HandledEntityEventArgs
 {
-    public List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)> Options = options;
+    public List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> Options = options;
     public LateJoinCustomListOrigin Origin = origin;
 }

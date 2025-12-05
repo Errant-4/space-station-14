@@ -18,12 +18,12 @@ namespace Content.Shared.Spawning;
 public sealed class LateJoinCustomListEvent(
     ProtoId<JobPrototype>? job,
     NetEntity station,
-    int buttonId,
+    string buttonId, //TODO:ERRANT move SolitarySpawningPrototype to shared and send ProtoId?
     LateJoinCustomListOrigin origin) : EntityEventArgs
 {
     public string? Job = job;
     public NetEntity Station = station;
-    public int ButtonId = buttonId;
+    public string ButtonId = buttonId;
     public LateJoinCustomListOrigin Origin = origin;
 }
 

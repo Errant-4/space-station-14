@@ -10,7 +10,7 @@ using Content.Shared.GameTicking.Components;
 using Content.Shared.Roles;
 using Content.Shared.Spawning;
 using Content.Shared.Station.Components;
-using Linguini.Shared.Util;
+using Robust.Shared.Map;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -26,7 +26,7 @@ namespace Content.Server.GameTicking.Rules;
 /// Currently, this always targets every player.
 /// The main station will still spawn, but no one will ever be on it. As such, when this game rule is in use,
 /// the server should be forced to use the 'Empty' map, to avoid spawning a bunch of unnecessary entities and active mobs
-/// </remarks>>
+/// </remarks>
 public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRuleComponent>
 {
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
@@ -38,9 +38,11 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     [Dependency] private readonly MetaDataSystem _meta = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
 
-    private readonly Dictionary<ICommonSession, EntityUid> _stations = [];
+    // A list of the station entities generated for each player (and the map they are on).
+    // Used for respawning players on their own station, and for deleting unused maps.
+    private readonly Dictionary<ICommonSession, (EntityUid, MapId)> _stations = [];
 
-    private Dictionary<ICommonSession, int> _choices = new();
+    private Dictionary<ICommonSession, ProtoId<SolitarySpawningPrototype>> _choices = new();
     private ProtoId<JobPrototype> _job = "Passenger";
 
     /// <inheritdoc/>
@@ -64,10 +66,10 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         //TODO check active rules and make the list
         var station = new NetEntity();
 
-        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId)>();
-        buttonData.Add((_job, null, "Tutorial", "This is the first tutorial"));
-        buttonData.Add((_job, null, "Death", "This will kill you"));
-        buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works."));
+        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT send ProtoId<SolitarySpawningPrototype> instead of string
+        buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
+        buttonData.Add((_job, null, "Death", "This will kill you", "Death"));
+        buttonData.Add((_job, station, "Out of Order", "Even in the future, nothing works.", "ProtoDud"));
 
         var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
         RaiseNetworkEvent(ev); //TODO:ERRANT test without channel
@@ -88,7 +90,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
     }
 
-    private bool ActiveRules()
+    private bool ActiveRules() //TODO:ERRANT probably no longer needed
     {
         var rules = EntityQueryEnumerator<SolitarySpawningRuleComponent, GameRuleComponent>();
 
@@ -108,47 +110,41 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         var active = false;
 
         // Check if any Solitary Spawning rules are running
-        var rules = EntityQueryEnumerator<SolitarySpawningRuleComponent,GameRuleComponent>();
-        while (rules.MoveNext(out var uid, out var comp, out var rule))
+        var query = QueryActiveRules();
+        while (query.MoveNext(out _, out var comp, out _))
         {
-            if (!GameTicker.IsGameRuleActive(uid, rule))
-                continue;
-
             // TODO check blacklists/whitelists from the gamerule
 
             // Only need to report failure if the player was covered under any active rules
             active = true;
 
-            var count = comp.Prototypes.Count;
-            if (count <= 0)
+            if (comp.Prototypes.Count <= 0)
             {
-                Log.Warning($"No solitary spawning prototypes were included in '{ToPrettyString(uid)}'.");
+                Log.Warning("No prototypes were included in SolitarySpawningRuleComponent");
                 continue;
             }
 
+            ProtoId<SolitarySpawningPrototype>? playerChoice = null;
             //TODO query SolitarySpawningManager which option the player picked when joining
-            int? playerChoice = null;
+
             if (_choices.TryGetValue(args.Player, out var found))
                 playerChoice = found;
             _choices.Remove(args.Player);
 
-            if (playerChoice is null || !playerChoice.Value.InRange(0, count - 1))
+            if (playerChoice is null || !comp.Prototypes.Contains(playerChoice.Value))
             {
-                Log.Warning($"Received invalid player choice for '{session}'. Received option: '{playerChoice}'. " +
-                            $"The gamerule '{ToPrettyString(uid)}' has {count} prototypes. " +
-                            $"Defaulting to first option: '{comp.Prototypes[0].Id}'");
+                Log.Warning($"Received invalid player choice from '{session}'. Player chose '{playerChoice}'. " +
+                            $"Defaulting to first option: '{comp.Prototypes.First().Id}'");
 
-                playerChoice = 0;
+                playerChoice = comp.Prototypes.First();
             }
 
-            var chosenProtoId = comp.Prototypes[playerChoice.Value];
-
-            if (!_proto.TryIndex(chosenProtoId, out var proto))
+            if (!_proto.TryIndex(playerChoice, out var proto))
             {
-                Log.Warning($"Solitary spawning failed for {session} - chosen prototype '{chosenProtoId}' does not exist");
+                Log.Warning($"Solitary spawning failed for {session} - prototype '{playerChoice}' does not exist");
                 continue;
             }
-            Log.Debug($"Solitary spawning prototype '{chosenProtoId}' selected for {session}");
+            Log.Debug($"Solitary spawning prototype '{playerChoice}' selected for {session}");
 
             var job = proto.Job;
 
@@ -184,7 +180,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         PlayerBeforeSpawnEvent args,
         SolitarySpawningPrototype prototype,
         ICommonSession session,
-        [NotNullWhen(true)]out EntityUid? stationTarget)
+        [NotNullWhen(true)] out EntityUid? stationTarget)
     {
         stationTarget = null;
         var proto = prototype.Map;
@@ -212,8 +208,8 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
         stationTarget = member.Station;
 
-        //store the newly created station entity for this session so we can put the player back on respawn
-        _stations.Add(session, stationTarget.Value);
+        //store the newly created station entity and map for this session, for respawn and cleanup purposes
+        _stations.Add(session, (stationTarget.Value, mapId));
         return true;
     }
 
@@ -255,7 +251,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         if (!_stations.TryGetValue(session, out var stored))
             return false;
 
-        station = stored;
+        station = stored.Item1;
         return true;
     }
 
