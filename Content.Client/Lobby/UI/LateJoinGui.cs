@@ -2,13 +2,11 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.CrewManifest;
 using Content.Client.GameTicking.Managers;
-using Content.Client.Lobby;
 using Content.Client.UserInterface.Controls;
 using Content.Client.Players.PlayTimeTracking;
 using Content.Shared.CCVar;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
-using Content.Shared.StatusIcon;
 using Robust.Client.Console;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
@@ -19,7 +17,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using static Robust.Client.UserInterface.Controls.BoxContainer;
 
-namespace Content.Client.LateJoin
+namespace Content.Client.Lobby.UI
 {
     public sealed class LateJoinGui : DefaultWindow
     {
@@ -30,6 +28,7 @@ namespace Content.Client.LateJoin
         [Dependency] private readonly JobRequirementsManager _jobRequirements = default!;
         [Dependency] private readonly IClientPreferencesManager _preferencesManager = default!;
         [Dependency] private readonly ILogManager _logManager = default!;
+        [Dependency] private readonly ILobbyManager _lobby = default!;
 
         public event Action<(NetEntity, string)> SelectedId;
 
@@ -73,6 +72,8 @@ namespace Content.Client.LateJoin
                 _consoleHost.ExecuteCommand($"joingame {CommandParsing.Escape(jobId)} {station}");
                 Close();
             };
+
+            _lobby.CloseJoinGui += Close;
 
             _gameTicker.LobbyJobsAvailableUpdated += JobsAvailableUpdated;
         }

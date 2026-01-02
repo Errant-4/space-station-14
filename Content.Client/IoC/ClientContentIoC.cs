@@ -21,6 +21,7 @@ using Content.Client.Voting;
 using Content.Shared.Administration.Logs;
 using Content.Client.Lobby;
 using Content.Client.Players.RateLimiting;
+using Content.Client.Spawning;
 using Content.Shared.Administration.Managers;
 using Content.Shared.Chat;
 using Content.Shared.IoC;
@@ -62,6 +63,7 @@ namespace Content.Client.IoC
             collection.Register<SharedPlayerRateLimitManager, PlayerRateLimitManager>();
             collection.Register<TitleWindowManager>();
             collection.Register<ClientsidePlaytimeTrackingManager>();
+            collection.Register<ILobbyManager, LobbyManager>();
         }
     }
 }

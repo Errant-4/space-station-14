@@ -1,14 +1,17 @@
 using Content.Client.Audio;
 using Content.Client.GameTicking.Managers;
-using Content.Client.LateJoin;
 using Content.Client.Lobby.UI;
 using Content.Client.Message;
 using Content.Client.Playtime;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Client.Voting;
 using Content.Shared.CCVar;
+using Content.Shared.Lobby;
+using Content.Shared.Roles;
+using Content.Shared.Spawning;
 using Robust.Client;
 using Robust.Client.Console;
+using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -24,18 +27,22 @@ namespace Content.Client.Lobby
         [Dependency] private readonly IConfigurationManager _cfg = default!;
         [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
         [Dependency] private readonly IEntityManager _entityManager = default!;
+        [Dependency] private readonly ILogManager _log = default!;
+        [Dependency] private readonly IPlayerManager _player = default!;
         [Dependency] private readonly IResourceCache _resourceCache = default!;
         [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly IVoteManager _voteManager = default!;
         [Dependency] private readonly ClientsidePlaytimeTrackingManager _playtimeTracking = default!;
         [Dependency] private readonly IPrototypeManager _protoMan = default!;
+        [Dependency] private readonly ILobbyManager _lobby = default!;
 
         private ClientGameTicker _gameTicker = default!;
         private ContentAudioSystem _contentAudioSystem = default!;
 
         protected override Type? LinkedScreenType { get; } = typeof(LobbyGui);
         public LobbyGui? Lobby;
+        private LateJoinGuiMode _lateJoinMode = LateJoinGuiMode.Default;
 
         protected override void Startup()
         {
@@ -75,6 +82,8 @@ namespace Content.Client.Lobby
             _gameTicker.InfoBlobUpdated += UpdateLobbyUi;
             _gameTicker.LobbyStatusUpdated += LobbyStatusUpdated;
             _gameTicker.LobbyLateJoinStatusUpdated += LobbyLateJoinStatusUpdated;
+
+            _lobby.OnCustomListGuiRequest += OnCustomListReceived;
         }
 
         protected override void Shutdown()
@@ -114,7 +123,28 @@ namespace Content.Client.Lobby
                 return;
             }
 
-            new LateJoinGui().OpenCentered();
+            var ev = new LobbyLateJoinButtonPressedEvent();
+            _entityManager.RaisePredictiveEvent(ev); //TODO:ERRANT no longer necessary to make this a Handled event
+
+            if (_lateJoinMode is LateJoinGuiMode.Default)
+                new LateJoinGui().OpenCentered();
+        }
+
+        /// <summary>
+        /// Opens a Late Join GUI, which shows the player only a list of specified spawn options.
+        /// </summary>
+        // /// <param name="args"></param>
+        public void OnCustomListReceived(SolitarySpawningGuiDataEvent args)
+        {
+            if (!_gameTicker.IsGameStarted)
+            {
+                return;
+            }
+
+            if (_lateJoinMode is not LateJoinGuiMode.CustomList)
+                _lobby.CloseAllLateJoinGui();
+
+            new LateJoinGuiCustomList(_entityManager, _log, _gameTicker, _lobby, args.Options,args.Origin).OpenCentered();
         }
 
         private void OnReadyToggled(BaseButton.ButtonToggledEventArgs args)
@@ -281,3 +311,11 @@ namespace Content.Client.Lobby
         }
     }
 }
+
+/// <summary>
+///     The system that originally created the custom spawn list </summary>
+// public enum LateJoinGuiMode : byte
+// {
+//     Default,
+//     CustomList,
+// }

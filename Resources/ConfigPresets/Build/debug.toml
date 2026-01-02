@@ -1,1 +1,19 @@
-﻿
+﻿[game]
+defaultpreset = "Tutorial"
+lobbyduration = 1
+lobbyenabled = true
+map = "TutorialTest"
+
+[gateway]
+generator_enabled = false
+
+[procgen]
+preload = false
+
+[shuttle]
+arrivals = false
+emergency = false
+preload_grids = false
+
+[server]
+lobby_join_mode = "tutorial"
