@@ -68,7 +68,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         // var a = this;
         // var b = a.ToString();
 
-        // ProtoId<JobPrototype> job = "Passenger"; // This will be overwritten by the actual Spawn Profile later
+        // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRANT This will be overwritten by the actual Spawn Profile later
 
         //TODO check active rules and make the list
         var station = new NetEntity();
@@ -90,15 +90,14 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         UpdateRules();
     }
 
+    //TODO:ERRANT doc
     private void UpdateRules()
     {
         var list = new List<SolitarySpawningRuleComponent>();
         var active = false;
-
         var query = QueryActiveRules();
-        while (query.MoveNext(out _, out var comp, out _))
 
-        // while (rules.MoveNext(out var uid, out var comp, out var rule))
+        while (query.MoveNext(out var uid, out var comp, out var rule))
         {
             list.Add(comp);
             active = true;

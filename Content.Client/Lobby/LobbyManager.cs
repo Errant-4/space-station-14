@@ -1,6 +1,4 @@
-using Content.Shared.Roles;
 using Content.Shared.Spawning;
-using Robust.Shared.Prototypes;
 
 namespace Content.Client.Lobby;
 
@@ -16,9 +14,7 @@ public sealed partial class LobbyManager : ILobbyManager
 
     public event Action? CloseJoinGui;
 
-
-    /// <inheritdoc/>
-    public void Initialize()
+    public void Initialize() //TODO:ERRANT do I actually need this?
     {
 
     }

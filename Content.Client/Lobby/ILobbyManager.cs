@@ -1,16 +1,12 @@
-using Content.Shared.Roles;
 using Content.Shared.Spawning;
-using Robust.Shared.Prototypes;
 
 namespace Content.Client.Lobby;
 
 /// <summary>
-/// This is used for...
+/// This is used for... //TODO:ERRANT
 /// </summary>
 public interface ILobbyManager
 {
-
-
     /// <summary>
     ///     Fired when Gui data for a custom Late Join list is received.
     /// </summary>
@@ -30,5 +26,4 @@ public interface ILobbyManager
     ///     Closes all Late Join windows that are currently open.
     /// </summary>
     void CloseAllLateJoinGui();
-
 }
