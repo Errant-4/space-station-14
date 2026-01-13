@@ -65,13 +65,15 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
     private void OnStartup(Entity<SolitarySpawningRuleComponent> ent, ref ComponentStartup args)
     {
-        // var a = this;
-        // var b = a.ToString();
+        _rules.Add(ent.Comp);
+        RuleActiveUpdate(true);
 
         // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRANT This will be overwritten by the actual Spawn Profile later
 
         //TODO check active rules and make the list
         var station = new NetEntity();
+
+        //TODO:ERRANT make button data from prototype
 
         var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT send ProtoId<SolitarySpawningPrototype> instead of string
         buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
@@ -80,9 +82,6 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
         var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
         RaiseNetworkEvent(ev); //TODO:ERRANT test without channel
-
-        UpdateRules();
-
     }
 
     private void OnShutdown(Entity<SolitarySpawningRuleComponent> ent, ref ComponentShutdown args)
@@ -103,17 +102,24 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
             active = true;
         }
 
-        // Let the client Lobbies know when they need to switch to/from custom spawn Gui
-        if (_rulesActive != active)
-        {
-            var newval = active ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
-
-            var ev = new ChangeLateJoinGuiModeEvent(newval); //TODO:ERRANT does not seem to work
-            RaiseNetworkEvent(ev);
-            _rulesActive = active;
-        }
+        RuleActiveUpdate(active);
 
         _rules = list;
+    }
+
+    // Let the client Lobbies know when they need to switch to/from custom spawn Gui TODO:ERRANT write this better
+    private void RuleActiveUpdate(bool newStatus)
+    {
+        if (newStatus == _rulesActive)
+            return;
+
+        //TODO This should be updated with the feature to put only specific clients into Custom mode, specified by the prototype
+
+        var newval = newStatus ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
+
+        var ev = new ChangeLateJoinGuiModeEvent(newval);
+        RaiseNetworkEvent(ev);
+        _rulesActive = newStatus;
     }
 
     /// <summary>
@@ -121,6 +127,8 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     /// </summary>
     private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
     {
+        UpdateRules(); //TODO:ERRANT This should not be here, but the normal call in line 100 fails to detect the new rule
+
         if (!_rulesActive)
             return;
 
@@ -162,16 +170,16 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
     }
 
-    private bool ActiveRules() //TODO:ERRANT probably no longer needed
-    {
-        var rules = EntityQueryEnumerator<SolitarySpawningRuleComponent, GameRuleComponent>();
-
-        while (rules.MoveNext(out var uid, out var comp, out var rule))
-        {
-        }
-
-        return false;
-    }
+    // private bool ActiveRules(out ) //TODO:ERRANT probably no longer needed
+    // {
+    //     var rules = QueryActiveRules();
+    //
+    //     while (rules.MoveNext(out var uid, out var comp, out var rule))
+    //     {
+    //     }
+    //
+    //     return false;
+    // }
 
     /// <summary>
     /// A player is trying to enter the round, or is respawning
