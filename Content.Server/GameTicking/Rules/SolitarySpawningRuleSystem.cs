@@ -2,15 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Managers;
-// using Content.Server.GameTicking.Prototypes;
-// using Content.Server.GameTicking.Rules.Components;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Prototypes;
 using Content.Shared.GameTicking.Rules;
-using Content.Shared.GameTicking.Components;
 using Content.Shared.Lobby;
-//using Content.Shared.Lobby;
 using Content.Shared.Roles;
 using Content.Shared.Spawning;
 using Content.Shared.Station.Components;
@@ -20,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server.GameTicking.Rules;
 
-// TODO Integration test
+// TODO:ERRANT Integration test
 
 /// <summary>
 /// This system overrides the normal spawn process, and puts each player on their own personal map.
@@ -28,7 +24,7 @@ namespace Content.Server.GameTicking.Rules;
 /// <remarks>
 /// Currently, this always targets every player.
 /// The main station will still spawn, but no one will ever be on it. As such, when this game rule is in use,
-/// the server should be forced to use the 'Empty' map, to avoid spawning a bunch of unnecessary entities and active mobs
+/// the server should be set to some lightweight map, like Empty
 /// </remarks>
 public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRuleComponent>
 {
@@ -44,8 +40,14 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     // Used for respawning players on their own station, and for deleting unused maps.
     private readonly Dictionary<ICommonSession, (EntityUid, MapId)> _stations = [];
 
+    // When a player picks a spawn option on the Join GUI, it's stored here until they go through the player spawn process
     private readonly Dictionary<ICommonSession, ProtoId<SolitarySpawningPrototype>> _choices = new();
+
+    // The spawn prototype will override the job, but we need to set an initial value to begin the spawn process.
+    // Normally this is provided by the player's pick on the late join GUI, but we don't have that with the custom GUI, so we use this dummy
     private readonly ProtoId<JobPrototype> _job = "Passenger";
+
+    // The list of currently running Solitary Spawning Rules is stored here, so it does not need to be queried redundantly
     private List<SolitarySpawningRuleComponent> _rules = [];
     private bool _rulesActive;
 
