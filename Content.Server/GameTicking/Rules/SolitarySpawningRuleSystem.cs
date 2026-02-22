@@ -347,5 +347,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     private void MapCleanup()
     {
         // TODO map cleanup x minutes after the player left the server, or if they go back to the lobby
+
+        // TODO map should also clean up when the player is sent back to the lobby, otherwise they can't select a different tutorial
     }
 }
