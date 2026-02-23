@@ -17,3 +17,6 @@ preload_grids = false
 
 [server]
 lobby_join_mode = "tutorial"
+
+[ic]
+random_characters = false

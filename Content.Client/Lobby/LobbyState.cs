@@ -132,7 +132,7 @@ namespace Content.Client.Lobby
         /// </summary>
         // /// <param name="args"></param>
         public void OnCustomListReceived(SolitarySpawningGuiDataEvent args)
-        {
+        {//TODO:ERRANT mispredict, the default spawn UI is shown for a moment
             if (!_gameTicker.IsGameStarted)
             {
                 return;
