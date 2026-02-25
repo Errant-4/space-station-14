@@ -3,7 +3,8 @@ using Content.Shared.Spawning;
 namespace Content.Client.Lobby;
 
 /// <summary>
-/// This is used for... //TODO:ERRANT
+/// This handles some data flow between the client's lobby UI and the server, that couldn't be done by LobbyState.
+/// Possibly should replace LobbyState?
 /// </summary>
 public interface ILobbyManager
 {

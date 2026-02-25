@@ -52,7 +52,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
     private void BuildUI(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData, ClientGameTicker ticker)
     {
-        var tutorialListScroll = new ScrollContainer() //TODO:ERRANT this doesn't seem to work?
+        var tutorialListScroll = new ScrollContainer() //TODO:ERRANT LATER this doesn't seem to work?
         {
             VerticalExpand = true,
             Visible = false,
@@ -60,10 +60,8 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
         _base.AddChild(tutorialListScroll);
 
         // Turn the input data into actual buttons
-        // var counter = 0;
         foreach (var (job, stationInput, nameLoc, descriptionLoc, proto) in buttonData)
         {
-            // var c = counter; //TODO:ERRANT try again if this is needed
             var name = Loc.GetString(nameLoc);
             var description = Loc.GetString(descriptionLoc);
             var station = stationInput ?? ticker.StationNames.First().Key;
@@ -89,7 +87,6 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
             optionButton.AddChild(optionSelector);
             optionButton.OnPressed += _ => SelectedOption.Invoke((job, station, proto, name));
             _base.AddChild(optionButton);
-            // counter++;
         }
     }
 }

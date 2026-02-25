@@ -75,7 +75,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         //TODO check active rules and make the list
         var station = new NetEntity();
 
-        //TODO:ERRANT make button data from prototype
+        //TODO:ERRANT LATER make button data from prototype
 
         var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT send ProtoId<SolitarySpawningPrototype> instead of string
         buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
@@ -91,7 +91,9 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         UpdateRules();
     }
 
-    //TODO:ERRANT doc
+    /// <summary>
+    /// Updates _rules to show whether any solitary spawning rules are currently active.
+    /// </summary>
     private void UpdateRules()
     {
         var list = new List<SolitarySpawningRuleComponent>();
@@ -167,7 +169,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         _choices.Remove(session);
         _choices.Add(session, message.ButtonId);
 
-        //TODO checks?
+        //TODO:ERRANT check origin ?
         _gameTicker.MakeJoinGame(session, station, message.Job, silent:true);
 
     }
