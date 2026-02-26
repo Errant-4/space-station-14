@@ -9,4 +9,4 @@ namespace Content.Shared.Spawning;
 /// This can be used by specific systems to handle special spawning situations.
 /// </remarks>
 [Serializable, NetSerializable]
-public sealed class LobbyLateJoinButtonPressedEvent : HandledEntityEventArgs;
+public sealed class LobbyLateJoinButtonPressedEvent : EntityEventArgs;

@@ -16,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server.GameTicking.Rules;
 
-// TODO:ERRANT Integration test
+// TODO:ERRANT LATER1 Integration test
 
 /// <summary>
 /// This system overrides the normal spawn process, and puts each player on their own personal map.
@@ -70,20 +70,22 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         _rules.Add(ent.Comp);
         RuleActiveUpdate(true);
 
-        // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRANT This will be overwritten by the actual Spawn Profile later
+        // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRANT LATER2 This will be overwritten by the actual Spawn Profile later. Delete?
 
         //TODO check active rules and make the list
         var station = new NetEntity();
 
-        //TODO:ERRANT LATER make button data from prototype
+        //TODO:ERRANT LATER1 make button data from prototype
 
-        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT send ProtoId<SolitarySpawningPrototype> instead of string
+        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT NOW send ProtoId<SolitarySpawningPrototype> instead of string
         buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
         buttonData.Add((_job, null, "Death", "This will kill you", "Death"));
         buttonData.Add((_job, station, "Out of Order", "Even in the future, nothing works.", "ProtoDud"));
 
         var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
-        RaiseNetworkEvent(ev); //TODO:ERRANT test without channel
+        RaiseNetworkEvent(ev);
+
+        //TODO:ERRANT NOW This should only put the Lobby into Custom Gui mode, it does not need to send any button data
     }
 
     private void OnShutdown(Entity<SolitarySpawningRuleComponent> ent, ref ComponentShutdown args)
@@ -111,7 +113,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         _rules = list;
     }
 
-    // Let the client Lobbies know when they need to switch to/from custom spawn Gui TODO:ERRANT write this better
+    // Let the client Lobbies know when they need to switch to/from custom spawn Gui TODO:ERRANT NOW write this better
     private void RuleActiveUpdate(bool newStatus)
     {
         if (newStatus == _rulesActive)
@@ -131,7 +133,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     /// </summary>
     private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
     {
-        UpdateRules(); //TODO:ERRANT This should not be here, but the normal call in line 100 fails to detect the new rule
+        UpdateRules(); //TODO:ERRANT NOW This should not be here, but the normal call in line 100 fails to detect the new rule
 
         if (!_rulesActive)
             return;
@@ -148,7 +150,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
             }
         }
 
-        buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works.", "")); //TODO:ERRANT remove
+        // buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works.", "")); //TODO:ERRANT NOW Move to data read from the prototype?
 
         Log.Debug($"Created {buttonData.Count} button entries");
 
@@ -169,12 +171,12 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         _choices.Remove(session);
         _choices.Add(session, message.ButtonId);
 
-        //TODO:ERRANT check origin ?
+        //TODO:ERRANT LATER1 The event identifies the sending system? Read it and filter
         _gameTicker.MakeJoinGame(session, station, message.Job, silent:true);
 
     }
 
-    // private bool ActiveRules(out ) //TODO:ERRANT probably no longer needed
+    // private bool ActiveRules(out ) //TODO:ERRANT LATER2 Delete
     // {
     //     var rules = QueryActiveRules();
     //

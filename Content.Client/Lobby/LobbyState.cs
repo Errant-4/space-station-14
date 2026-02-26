@@ -121,9 +121,9 @@ namespace Content.Client.Lobby
             }
 
             var ev = new LobbyLateJoinButtonPressedEvent();
-            _entityManager.RaisePredictiveEvent(ev); //TODO:ERRANT no longer necessary to make this a Handled event
+            _entityManager.RaisePredictiveEvent(ev);
 
-            if (_lateJoinMode is LateJoinGuiMode.Default)
+            if (_lateJoinMode is LateJoinGuiMode.Default) //TODO:ERRANT NOW the latejoinmode is still default?
                 new LateJoinGui().OpenCentered();
         }
 
@@ -132,10 +132,10 @@ namespace Content.Client.Lobby
         /// </summary>
         // /// <param name="args"></param>
         public void OnCustomListReceived(SolitarySpawningGuiDataEvent args)
-        {//TODO:ERRANT mispredict, the default spawn UI is shown for a moment
+        {//TODO:ERRANT LATER1 mispredict, the default spawn UI is shown for a moment
             if (!_gameTicker.IsGameStarted)
             {
-                return;
+                return; //TODO:ERRANT NOW The game hasn't started yet, so it exited!
             }
 
             if (_lateJoinMode is not LateJoinGuiMode.CustomList)

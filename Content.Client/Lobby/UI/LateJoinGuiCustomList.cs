@@ -14,7 +14,7 @@ namespace Content.Client.Lobby.UI;
 public sealed class LateJoinGuiCustomList : DefaultWindow
 {
     private readonly Control _base;
-    public event Action<(ProtoId<JobPrototype>, NetEntity, string, string)> SelectedOption; //TODO:ERRANT replace 1st string with ProtoId<SolitarySpawningPrototype>
+    public event Action<(ProtoId<JobPrototype>, NetEntity, string, string)> SelectedOption; //TODO:ERRANT NOW replace 1st string with ProtoId<SolitarySpawningPrototype>
 
     public LateJoinGuiCustomList(
         IEntityManager entMan,
@@ -52,7 +52,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
     private void BuildUI(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData, ClientGameTicker ticker)
     {
-        var tutorialListScroll = new ScrollContainer() //TODO:ERRANT LATER this doesn't seem to work?
+        var tutorialListScroll = new ScrollContainer() //TODO:ERRANT LATER2 this doesn't seem to work?
         {
             VerticalExpand = true,
             Visible = false,

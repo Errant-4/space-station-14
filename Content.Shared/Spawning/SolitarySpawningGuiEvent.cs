@@ -9,14 +9,14 @@ namespace Content.Shared.Spawning;
 /// Raised by the server when the player presses the late join button while a SolitarySpawning rule is active.
 /// It sends the list of spawn options to the client
 /// </summary>
-[Serializable, NetSerializable] //TODO:ERRANT rename
+[Serializable, NetSerializable] //TODO:ERRANT LATER2 rename
 public sealed class SolitarySpawningGuiDataEvent(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> options, LateJoinCustomListOrigin origin) : EntityEventArgs
 {
     public List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> Options = options;
     public LateJoinCustomListOrigin Origin = origin;
 }
 
-[Serializable, NetSerializable] //TODO:ERRANT move this elsewhere
+[Serializable, NetSerializable] //TODO:ERRANT LATER2 move this elsewhere
 public sealed class ChangeLateJoinGuiModeEvent(LateJoinGuiMode mode) : EntityEventArgs
 {
     public LateJoinGuiMode Mode = mode;

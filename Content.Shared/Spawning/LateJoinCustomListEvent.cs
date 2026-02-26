@@ -12,7 +12,7 @@ namespace Content.Shared.Spawning;
 /// <param name="station">The station the player wants to spawn on</param>
 /// <param name="buttonId">The numeric ID of the button the player clicked, counted from 0. This is relevant to some custom systems.</param>
 /// <param name="origin">This identifies the system that originally made this list, so that other custom handlers can ignore the event when it goes back to Server</param>
-[Serializable, NetSerializable] //TODO:ERRANT rename?
+[Serializable, NetSerializable] //TODO:ERRANT LATER1 rename?
 public sealed class LateJoinCustomListEvent(
     ProtoId<JobPrototype>? job,
     NetEntity station,
