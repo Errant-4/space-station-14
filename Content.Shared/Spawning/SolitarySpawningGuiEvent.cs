@@ -6,17 +6,17 @@ using Robust.Shared.Serialization;
 namespace Content.Shared.Spawning;
 
 /// <summary>
-/// Raised by the server when the player presses the late join button while a SolitarySpawning rule is active.
-/// It sends the list of spawn options to the client
+/// Raised by the server when a system that provides custom latejoin options has updated the available spawn profiles.
+/// These are then stored on the client to be shown when the player opens the Late Join UI
 /// </summary>
-[Serializable, NetSerializable] //TODO:ERRANT LATER2 rename
-public sealed class SolitarySpawningGuiDataEvent(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> options, LateJoinCustomListOrigin origin) : EntityEventArgs
+[Serializable, NetSerializable]
+public sealed class LateJoinGuiCustomButtonsEvent(List<LateJoinCustomOption> options, LateJoinCustomListOrigin origin) : EntityEventArgs
 {
-    public List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> Options = options;
+    public List<LateJoinCustomOption> Options = options;
     public LateJoinCustomListOrigin Origin = origin;
 }
 
-[Serializable, NetSerializable] //TODO:ERRANT LATER2 move this elsewhere
+[Serializable, NetSerializable] //TODO:ERRANT LATER2 Delete this?
 public sealed class ChangeLateJoinGuiModeEvent(LateJoinGuiMode mode) : EntityEventArgs
 {
     public LateJoinGuiMode Mode = mode;

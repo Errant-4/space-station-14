@@ -1,3 +1,4 @@
+using Content.Shared.Lobby;
 using Content.Shared.Spawning;
 
 namespace Content.Client.Lobby;
@@ -8,23 +9,23 @@ namespace Content.Client.Lobby;
 /// </summary>
 public interface ILobbyManager
 {
-    /// <summary>
-    ///     Fired when Gui data for a custom Late Join list is received.
-    /// </summary>
-    event Action<SolitarySpawningGuiDataEvent>? OnCustomListGuiRequest;
-
-    /// <summary>
-    ///     Instructs all Join GUIs to close
-    /// </summary>
-    event Action? CloseJoinGui;
+    // /// <summary>
+    // ///     Fired when Gui data for a custom Late Join list is received.
+    // /// </summary>
+    // event Action<LateJoinGuiCustomButtonsEvent>? OnCustomListGuiRequest;
 
     /// <summary>
     ///     Opens a Custom late join GUI for the provided spawn options.
     /// </summary>
-    void RequestCustomListGui(SolitarySpawningGuiDataEvent args);
+    void UpdateCustomListGui(LateJoinGuiCustomButtonsEvent args);
 
     /// <summary>
-    ///     Closes all Late Join windows that are currently open.
+    ///     Opens a Custom late join GUI from the stored spawn options.
     /// </summary>
-    void CloseAllLateJoinGui();
+    List<LateJoinCustomOptionWithOrigin>  RequestCustomListGui();
+
+    /// <summary>
+    ///     Checks what join mode the Lobby is currently using.
+    /// </summary>
+    LateJoinGuiMode GetJoinMode();
 }

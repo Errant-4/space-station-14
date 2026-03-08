@@ -39,7 +39,7 @@ namespace Content.Client.Lobby
 
         protected override Type? LinkedScreenType { get; } = typeof(LobbyGui);
         public LobbyGui? Lobby;
-        private LateJoinGuiMode _lateJoinMode = LateJoinGuiMode.Default;
+
 
         protected override void Startup()
         {
@@ -79,8 +79,6 @@ namespace Content.Client.Lobby
             _gameTicker.InfoBlobUpdated += UpdateLobbyUi;
             _gameTicker.LobbyStatusUpdated += LobbyStatusUpdated;
             _gameTicker.LobbyLateJoinStatusUpdated += LobbyLateJoinStatusUpdated;
-
-            _lobby.OnCustomListGuiRequest += OnCustomListReceived;
         }
 
         protected override void Shutdown()
@@ -120,28 +118,29 @@ namespace Content.Client.Lobby
                 return;
             }
 
-            var ev = new LobbyLateJoinButtonPressedEvent();
-            _entityManager.RaisePredictiveEvent(ev);
+            // var ev = new LobbyLateJoinButtonPressedEvent();
+            // _entityManager.RaisePredictiveEvent(ev);
 
-            if (_lateJoinMode is LateJoinGuiMode.Default) //TODO:ERRANT NOW the latejoinmode is still default?
-                new LateJoinGui().OpenCentered();
-        }
-
-        /// <summary>
-        /// Opens a Late Join GUI, which shows the player only a list of specified spawn options.
-        /// </summary>
-        // /// <param name="args"></param>
-        public void OnCustomListReceived(SolitarySpawningGuiDataEvent args)
-        {//TODO:ERRANT LATER1 mispredict, the default spawn UI is shown for a moment
-            if (!_gameTicker.IsGameStarted)
+            var mode = _lobby.GetJoinMode();
+            switch (mode)
             {
-                return; //TODO:ERRANT NOW The game hasn't started yet, so it exited!
+                default:
+                case LateJoinGuiMode.Default:
+                    new LateJoinGui().OpenCentered();
+                    break;
+                case LateJoinGuiMode.CustomList:
+                    var stored = _lobby.RequestCustomListGui();
+
+                    //get data
+                    new LateJoinGuiCustomList(_entityManager, _log, _gameTicker, _lobby, stored).OpenCentered();
+                    break;
             }
 
-            if (_lateJoinMode is not LateJoinGuiMode.CustomList)
-                _lobby.CloseAllLateJoinGui();
 
-            new LateJoinGuiCustomList(_entityManager, _log, _gameTicker, _lobby, args.Options,args.Origin).OpenCentered();
+
+
+            if (_lobby.GetJoinMode() is LateJoinGuiMode.Default) //TODO:ERRANT NOW the latejoinmode is still default?
+                new LateJoinGui().OpenCentered();
         }
 
         private void OnReadyToggled(BaseButton.ButtonToggledEventArgs args)

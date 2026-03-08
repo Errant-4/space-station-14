@@ -28,7 +28,6 @@ namespace Content.Client.Lobby.UI
         [Dependency] private readonly JobRequirementsManager _jobRequirements = default!;
         [Dependency] private readonly IClientPreferencesManager _preferencesManager = default!;
         [Dependency] private readonly ILogManager _logManager = default!;
-        [Dependency] private readonly ILobbyManager _lobby = default!;
 
         public event Action<(NetEntity, string)> SelectedId;
 
@@ -72,8 +71,6 @@ namespace Content.Client.Lobby.UI
                 _consoleHost.ExecuteCommand($"joingame {CommandParsing.Escape(jobId)} {station}");
                 Close();
             };
-
-            _lobby.CloseJoinGui += Close;
 
             _gameTicker.LobbyJobsAvailableUpdated += JobsAvailableUpdated;
         }

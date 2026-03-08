@@ -16,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server.GameTicking.Rules;
 
-// TODO:ERRANT LATER1 Integration test
+// TODO:ERRANT LATER1 Integration test?
 
 /// <summary>
 /// This system overrides the normal spawn process, and puts each player on their own personal map.
@@ -24,7 +24,7 @@ namespace Content.Server.GameTicking.Rules;
 /// <remarks>
 /// Currently, this always targets every player.
 /// The main station will still spawn, but no one will ever be on it. As such, when this game rule is in use,
-/// the server should be set to some lightweight map, like Empty
+/// the server can just be set to some lightweight map, like Empty
 /// </remarks>
 public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRuleComponent>
 {
@@ -61,36 +61,39 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
 
         SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-        SubscribeNetworkEvent<LobbyLateJoinButtonPressedEvent>(OnLateJoinButton);
+        // SubscribeNetworkEvent<LobbyLateJoinButtonPressedEvent>(OnLateJoinButton); TODO:ERRANT kill this event?
         SubscribeNetworkEvent<LateJoinCustomListEvent>(OnCustomList);
     }
 
     private void OnStartup(Entity<SolitarySpawningRuleComponent> ent, ref ComponentStartup args)
     {
-        _rules.Add(ent.Comp);
-        RuleActiveUpdate(true);
+        // _rules.Add(ent.Comp);
+        UpdateRules();
+        CustomGuiUpdate();
+        // RuleActiveUpdate(true);
 
-        // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRANT LATER2 This will be overwritten by the actual Spawn Profile later. Delete?
+        // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRAN LATER2 This will be overwritten by the actual Spawn Profile later. Delete?
 
-        //TODO check active rules and make the list
-        var station = new NetEntity();
-
-        //TODO:ERRANT LATER1 make button data from prototype
-
-        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRANT NOW send ProtoId<SolitarySpawningPrototype> instead of string
-        buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
-        buttonData.Add((_job, null, "Death", "This will kill you", "Death"));
-        buttonData.Add((_job, station, "Out of Order", "Even in the future, nothing works.", "ProtoDud"));
-
-        var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
-        RaiseNetworkEvent(ev);
-
-        //TODO:ERRANT NOW This should only put the Lobby into Custom Gui mode, it does not need to send any button data
+        // //TODO check active rules and make the list
+        // var station = new NetEntity();
+        //
+        // //TODO:ERRAN LATER1 make button data from prototype
+        //
+        // var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>(); //TODO:ERRAN NOW send ProtoId<SolitarySpawningPrototype> instead of string
+        // buttonData.Add((_job, null, "Tutorial", "This is the first tutorial", "TutorialTest"));
+        // buttonData.Add((_job, null, "Death", "This will kill you", "Death"));
+        // buttonData.Add((_job, station, "Out of Order", "Even in the future, nothing works.", "ProtoDud"));
+        //
+        // var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
+        // RaiseNetworkEvent(ev);
+        //
+        // //TODO:ERRAN NOW This should only put the Lobby into Custom Gui mode, it does not need to send any button data
     }
 
     private void OnShutdown(Entity<SolitarySpawningRuleComponent> ent, ref ComponentShutdown args)
     {
         UpdateRules();
+        CustomGuiUpdate();
     }
 
     /// <summary>
@@ -108,54 +111,111 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
             active = true;
         }
 
-        RuleActiveUpdate(active);
-
+        _rulesActive = active;
         _rules = list;
     }
 
-    // Let the client Lobbies know when they need to switch to/from custom spawn Gui TODO:ERRANT NOW write this better
-    private void RuleActiveUpdate(bool newStatus)
-    {
-        if (newStatus == _rulesActive)
-            return;
+    // /// <summary>
+    // /// Updates the saved state of "are there currently any active Solitary Spawning Rules?"
+    // /// If the update differs from the currently saved state, it informs all connected clients to switch to/from CustomList mode.
+    // /// </summary>
+    // private void RuleActiveUpdate(bool newStatus)
+    // {
+    //     if (newStatus == _rulesActive)
+    //         return;
+    //
+    //     //TODO This should be updated with the feature to put only specific clients into Custom mode,
+    //     // specified by the prototype, so individual players in a normal round can be targeted
+    //
+    //     // var newval = newStatus ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
+    //
+    //     // var ev = new ChangeLateJoinGuiModeEvent(newval);
+    //     // RaiseNetworkEvent(ev);
+    //     _rulesActive = newStatus;
+    // }
 
-        //TODO This should be updated with the feature to put only specific clients into Custom mode, specified by the prototype
-
-        var newval = newStatus ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
-
-        var ev = new ChangeLateJoinGuiModeEvent(newval);
-        RaiseNetworkEvent(ev);
-        _rulesActive = newStatus;
-    }
+    // /// <summary>
+    // /// A player pressed the Late Join button
+    // /// </summary>
+    // private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
+    // {
+    //     UpdateRules();
+    //
+    //     if (!_rulesActive)
+    //         return;
+    //
+    //     var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>();
+    //
+    //     Log.Debug($"Creating button data for {args.SenderSession}. Rules found: {_rules.Count}");
+    //     foreach (var rule in _rules)
+    //     {
+    //         foreach (var protoId in rule.Prototypes)
+    //         {
+    //             if (_proto.TryIndex(protoId, out var proto))
+    //                 buttonData.Add((_job, null, proto.Name, proto.Description, protoId));
+    //         }
+    //     }
+    //
+    //     // buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works.", ""));
+    //
+    //     Log.Debug($"Created {buttonData.Count} button entries");
+    //
+    //     var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
+    //     RaiseNetworkEvent(ev, args.SenderSession);
+    // }
 
     /// <summary>
-    /// A player pressed the Late Join button
+    ///  Get the spawn options from active rules, and send them to one or all clients.
     /// </summary>
-    private void OnLateJoinButton(LobbyLateJoinButtonPressedEvent message, EntitySessionEventArgs args)
+    /// <param name="session">The target client. Leave null to update all clients.</param>
+    private void CustomGuiUpdate(ICommonSession? session = null)
     {
         UpdateRules(); //TODO:ERRANT NOW This should not be here, but the normal call in line 100 fails to detect the new rule
 
-        if (!_rulesActive)
+        var buttonData = new List<LateJoinCustomOption>();
+        var ev = new LateJoinGuiCustomButtonsEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
+        NetEntity? station = null;
+
+        if (!_rulesActive || _rules.Count < 1)
+        {
+            Log.Debug($"No active/valid rules found, sending empty list.");
+            SendGuiUpdate(ev, session);
             return;
+        }
 
-        var buttonData = new List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)>();
+        Log.Debug($"Creating button data for spawn options. Rules found: {_rules.Count}");
 
-        Log.Debug($"Creating button data for {args.SenderSession}. Rules found: {_rules.Count}");
+        // Generate button data from all currently active spawn profile prototypes
         foreach (var rule in _rules)
         {
             foreach (var protoId in rule.Prototypes)
             {
                 if (_proto.TryIndex(protoId, out var proto))
-                    buttonData.Add((_job, null, proto.Name, proto.Description, protoId));
+                {
+                    var data = new LateJoinCustomOption(_job, station, proto.Name, proto.Description, protoId.Id);
+                    buttonData.Add(data);
+                }
             }
         }
 
-        // buttonData.Add((_job, new NetEntity(), "Out of Order", "Even in the future, nothing works.", "")); //TODO:ERRANT NOW Move to data read from the prototype?
-
         Log.Debug($"Created {buttonData.Count} button entries");
 
-        var ev = new SolitarySpawningGuiDataEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);
-        RaiseNetworkEvent(ev, args.SenderSession);
+        ev.Options = buttonData;
+        SendGuiUpdate(ev, session);
+    }
+
+    private void SendGuiUpdate(LateJoinGuiCustomButtonsEvent ev, ICommonSession? session)
+    {
+        if (session is null)
+        {
+            RaiseNetworkEvent(ev);
+            Log.Debug($"Sending button data update to all clients");
+        }
+        else
+        {
+            RaiseNetworkEvent(ev,session);
+            Log.Debug($"Sending button data update to '{session.Name}'");
+        }
     }
 
     /// <summary>
@@ -172,20 +232,13 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         _choices.Add(session, message.ButtonId);
 
         //TODO:ERRANT LATER1 The event identifies the sending system? Read it and filter
+
+        //TODO:ERRANT NOW Do not trust any client-sent data apart from ButtonId!
+        // Query the gamerules and read Station and Job from there
+
         _gameTicker.MakeJoinGame(session, station, message.Job, silent:true);
 
     }
-
-    // private bool ActiveRules(out ) //TODO:ERRANT LATER2 Delete
-    // {
-    //     var rules = QueryActiveRules();
-    //
-    //     while (rules.MoveNext(out var uid, out var comp, out var rule))
-    //     {
-    //     }
-    //
-    //     return false;
-    // }
 
     /// <summary>
     /// A player is trying to enter the round, or is respawning
@@ -213,6 +266,8 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
             ProtoId<SolitarySpawningPrototype>? playerChoice = null;
 
             //TODO query SolitarySpawningManager which option the player picked when joining
+
+            //TODO forced choices that were set by the system regardless of player choice? Such as from admin smites or such
 
             if (_choices.TryGetValue(args.Player, out var found))
                 playerChoice = found;

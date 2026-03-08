@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client.GameTicking.Managers;
+using Content.Shared.Lobby;
 using Content.Shared.Roles;
 using Content.Shared.Spawning;
 using Robust.Client.UserInterface;
@@ -14,18 +15,17 @@ namespace Content.Client.Lobby.UI;
 public sealed class LateJoinGuiCustomList : DefaultWindow
 {
     private readonly Control _base;
-    public event Action<(ProtoId<JobPrototype>, NetEntity, string, string)> SelectedOption; //TODO:ERRANT NOW replace 1st string with ProtoId<SolitarySpawningPrototype>
+    public event Action<(ProtoId<JobPrototype>, NetEntity, string, string, LateJoinCustomListOrigin)> SelectedOption; //TODO:ERRANT NOW replace 1st string with ProtoId<SolitarySpawningPrototype>
 
     public LateJoinGuiCustomList(
         IEntityManager entMan,
         ILogManager logManager,
         ClientGameTicker ticker,
         ILobbyManager lobby,
-        List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData,
-        LateJoinCustomListOrigin origin)
+        List<LateJoinCustomOptionWithOrigin> buttonData)
     {
         var sawmill = logManager.GetSawmill("latejoincustom.panel");
-        sawmill.Debug($"Received {buttonData.Count} custom latejoin profiles, sent by {origin}");
+        sawmill.Debug($"Received {buttonData.Count} custom latejoin profiles"); //TODO:ERRANT probably don't even need this log anymore now that this is stored on the client?
 
         MinSize = SetSize = new Vector2(360, 560);
         Title = Loc.GetString("late-join-custom-list-gui-title");
@@ -41,18 +41,19 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
         SelectedOption += x =>
         {
-            var (job, station, proto, name) = x;
+            var (job, station, proto, name, origin) = x;
             sawmill.Info($"Player requesting custom late join spawn: {proto} - '{name}'. {job} on {station}");
             entMan.RaisePredictiveEvent(new LateJoinCustomListEvent( job, station, proto, origin ));
             Close();
         };
 
-        lobby.CloseJoinGui += Close;
+        // lobby.CloseJoinGui += Close;
     }
 
-    private void BuildUI(List<(ProtoId<JobPrototype>, NetEntity?, LocId, LocId, string)> buttonData, ClientGameTicker ticker)
+    private void BuildUI(List<LateJoinCustomOptionWithOrigin> buttonData, ClientGameTicker ticker)
     {
         var tutorialListScroll = new ScrollContainer() //TODO:ERRANT LATER2 this doesn't seem to work?
+            //TODO:ERRANT this should not be named Tutorial anymore
         {
             VerticalExpand = true,
             Visible = false,
@@ -60,7 +61,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
         _base.AddChild(tutorialListScroll);
 
         // Turn the input data into actual buttons
-        foreach (var (job, stationInput, nameLoc, descriptionLoc, proto) in buttonData)
+        foreach (var (job, stationInput, nameLoc, descriptionLoc, proto, origin) in buttonData)
         {
             var name = Loc.GetString(nameLoc);
             var description = Loc.GetString(descriptionLoc);
@@ -75,6 +76,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
             {
                 optionButton.Disabled = true;
                 //TODO replace tooltip with error?
+                //TODO Don't care and let the sender system worry about the station?
             }
 
             var optionSelector = new BoxContainer
@@ -85,7 +87,7 @@ public sealed class LateJoinGuiCustomList : DefaultWindow
 
             optionSelector.AddChild(optionLabel);
             optionButton.AddChild(optionSelector);
-            optionButton.OnPressed += _ => SelectedOption.Invoke((job, station, proto, name));
+            optionButton.OnPressed += _ => SelectedOption.Invoke((job, station, proto, name, origin));
             _base.AddChild(optionButton);
         }
     }
