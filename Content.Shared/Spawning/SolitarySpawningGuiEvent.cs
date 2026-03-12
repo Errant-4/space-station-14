@@ -15,9 +15,3 @@ public sealed class LateJoinGuiCustomButtonsEvent(List<LateJoinCustomOption> opt
     public List<LateJoinCustomOption> Options = options;
     public LateJoinCustomListOrigin Origin = origin;
 }
-
-[Serializable, NetSerializable] //TODO:ERRANT LATER2 Delete this?
-public sealed class ChangeLateJoinGuiModeEvent(LateJoinGuiMode mode) : EntityEventArgs
-{
-    public LateJoinGuiMode Mode = mode;
-}

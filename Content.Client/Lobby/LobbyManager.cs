@@ -1,17 +1,10 @@
-using System.Linq;
 using Content.Shared.Lobby;
-using Content.Shared.Roles;
 using Content.Shared.Spawning;
-using Robust.Shared.Prototypes;
 
 namespace Content.Client.Lobby;
 
 public sealed partial class LobbyManager : ILobbyManager
 {
-    public event Action<LateJoinGuiCustomButtonsEvent>? OnCustomListGuiRequest;
-
-    // public event Action? CloseJoinGui;
-
     public Dictionary<LateJoinCustomListOrigin, List<LateJoinCustomOption>> StoredOptions = new();
 
     public LateJoinGuiMode LateJoinMode = LateJoinGuiMode.Default;
@@ -30,7 +23,9 @@ public sealed partial class LobbyManager : ILobbyManager
             StoredOptions.Add(args.Origin, args.Options);
         }
 
-        // TODO update lobby joinmode?
+        //TODO:ERRANT test what happens if you change gamepreset during round without immediately restarting!
+
+        LateJoinMode = StoredOptions.Count > 0 ? LateJoinGuiMode.CustomList : LateJoinGuiMode.Default;
     }
 
 
@@ -60,10 +55,4 @@ public sealed partial class LobbyManager : ILobbyManager
     {
         return LateJoinMode;
     }
-
-    // public void CloseAllLateJoinGui()
-    // {
-    //     CloseJoinGui?.Invoke();
-    // }
-
 }

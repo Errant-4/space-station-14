@@ -4,6 +4,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Chat.Managers;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
+using Content.Shared.GameTicking.Components;
 using Content.Shared.GameTicking.Prototypes;
 using Content.Shared.GameTicking.Rules;
 using Content.Shared.Lobby;
@@ -57,19 +58,39 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         base.Initialize();
 
         SubscribeLocalEvent<SolitarySpawningRuleComponent, ComponentStartup>(OnStartup);
+        // SubscribeLocalEvent<SolitarySpawningRuleComponent, GameRuleStartedEvent>(OnStart);
         SubscribeLocalEvent<SolitarySpawningRuleComponent, ComponentShutdown>(OnShutdown);
 
         SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-        // SubscribeNetworkEvent<LobbyLateJoinButtonPressedEvent>(OnLateJoinButton); TODO:ERRANT kill this event?
         SubscribeNetworkEvent<LateJoinCustomListEvent>(OnCustomList);
+
+        SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnPlayerJoinedLobby);
     }
 
-    private void OnStartup(Entity<SolitarySpawningRuleComponent> ent, ref ComponentStartup args)
+    // private void OnStart(Entity<SolitarySpawningRuleComponent> ent, ref GameRuleStartedEvent args)
+    // {
+    //     UpdateRules();
+    //     CustomGuiUpdate();
+    // }
+
+    private void OnPlayerJoinedLobby(PlayerJoinedLobbyEvent ev)
+    {
+        UpdateRules();
+
+        if (!_rulesActive)
+            return;
+
+        CustomGuiUpdate(ev.PlayerSession);
+    }
+
+    private void OnStartup(Entity<SolitarySpawningRuleComponent> ent, ref ComponentStartup args) //TODO:ERRANT this does not seem to catch the gamerule in a properly active state?
     {
         // _rules.Add(ent.Comp);
-        UpdateRules();
-        CustomGuiUpdate();
+
+            // UpdateRules();
+            // CustomGuiUpdate();
+
         // RuleActiveUpdate(true);
 
         // ProtoId<JobPrototype> job = "Passenger"; //TODO:ERRAN LATER2 This will be overwritten by the actual Spawn Profile later. Delete?
@@ -105,8 +126,8 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
         var active = false;
         var query = QueryActiveRules();
 
-        while (query.MoveNext(out var uid, out var comp, out var rule))
-        {
+        while (query.MoveNext(out _, out var comp, out _))
+        { //TODO:ERRANT this returns nothing on the first run
             list.Add(comp);
             active = true;
         }
@@ -170,7 +191,7 @@ public sealed class SolitarySpawningSystem : GameRuleSystem<SolitarySpawningRule
     /// <param name="session">The target client. Leave null to update all clients.</param>
     private void CustomGuiUpdate(ICommonSession? session = null)
     {
-        UpdateRules(); //TODO:ERRANT NOW This should not be here, but the normal call in line 100 fails to detect the new rule
+        // UpdateRules(); //TODO:ERRANT NOW This should not be here, but the normal call in line 100 fails to detect the new rule
 
         var buttonData = new List<LateJoinCustomOption>();
         var ev = new LateJoinGuiCustomButtonsEvent(buttonData, LateJoinCustomListOrigin.SolitarySpawningSystem);

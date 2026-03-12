@@ -1,7 +1,7 @@
 - type: gameMap
   id: TutorialTest
   mapName: 'TutorialTest'
-  mapPath: /Maps/Tutorial/tutorialtest.yml
+  mapPath: /Maps/Test/tutorialtest.yml
   minPlayers: 0
   stations:
     TutorialTest:

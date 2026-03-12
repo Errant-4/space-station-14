@@ -118,9 +118,6 @@ namespace Content.Client.Lobby
                 return;
             }
 
-            // var ev = new LobbyLateJoinButtonPressedEvent();
-            // _entityManager.RaisePredictiveEvent(ev);
-
             var mode = _lobby.GetJoinMode();
             switch (mode)
             {
@@ -135,12 +132,6 @@ namespace Content.Client.Lobby
                     new LateJoinGuiCustomList(_entityManager, _log, _gameTicker, _lobby, stored).OpenCentered();
                     break;
             }
-
-
-
-
-            if (_lobby.GetJoinMode() is LateJoinGuiMode.Default) //TODO:ERRANT NOW the latejoinmode is still default?
-                new LateJoinGui().OpenCentered();
         }
 
         private void OnReadyToggled(BaseButton.ButtonToggledEventArgs args)

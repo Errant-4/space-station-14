@@ -9,11 +9,6 @@ namespace Content.Client.Lobby;
 /// </summary>
 public interface ILobbyManager
 {
-    // /// <summary>
-    // ///     Fired when Gui data for a custom Late Join list is received.
-    // /// </summary>
-    // event Action<LateJoinGuiCustomButtonsEvent>? OnCustomListGuiRequest;
-
     /// <summary>
     ///     Opens a Custom late join GUI for the provided spawn options.
     /// </summary>
